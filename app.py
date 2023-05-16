@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Text, Optional
 from datetime import datetime
@@ -34,3 +34,19 @@ def save_post(post: Post):
     post.id = str(uuid())
     posts.append(post.dict())
     return "Recibido" 
+
+@app.get('/posts/{post_id}')
+def get_post(post_id: str):
+    for post in posts:
+        if post["id"] == post_id:
+            return post
+    raise HTTPException(status_code=404, detail="Item not found") 
+
+
+@app.delete('/posts/{post_id}')
+def delete_post(post_id: str):
+    for index, post in enumerate(posts):
+        if post["id"] == post_id:
+            posts.pop(index)
+            return {"message": "Post has been deleted succesfully"}
+    raise HTTPException(status_code=404, detail="Item not found")
