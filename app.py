@@ -4,59 +4,62 @@ from typing import Text, Optional
 from datetime import datetime
 from uuid import uuid4 as uuid
 
+app = FastAPI()
 
-app= FastAPI()
-
+# Lista para almacenar las publicaciones
 posts = []
-#Post model
 
+# Modelo de la publicación
 class Post(BaseModel):
     id: Optional[str]
     title: str
     author: str
     content: Text
-    create_at: datetime = datetime.now()
-    published_at: Optional[datetime] 
-    published: bool = False
+    creado_en: datetime = datetime.now()
+    publicado_en: Optional[datetime]
+    publicado: bool = False
 
-
+# Endpoint de la raíz
 @app.get('/')
-def read_root():
-    return {"welcome": "welcome to my REst API"}
+def leer_raiz():
+    return {"bienvenido": "Bienvenido a mi API REST"}
 
-
+# Obtener todas las publicaciones
 @app.get('/posts')
-def get_posts():
+def obtener_publicaciones():
     return posts
 
+# Crear una nueva publicación
 @app.post('/posts')
-def save_post(post: Post):
-    post.id = str(uuid())
-    posts.append(post.dict())
-    return "Recibido" 
+def guardar_publicacion(publicacion: Post):
+    publicacion.id = str(uuid())  # Generar un ID único para la publicación
+    posts.append(publicacion.dict())  # Convertir el objeto de la publicación a un diccionario y agregarlo a la lista
+    return "Recibido"
 
-@app.get('/posts/{post_id}')
-def get_post(post_id: str):
-    for post in posts:
-        if post["id"] == post_id:
-            return post
-    raise HTTPException(status_code=404, detail="Item not found") 
+# Obtener una publicación específica por su ID
+@app.get('/posts/{id_publicacion}')
+def obtener_publicacion(id_publicacion: str):
+    for publicacion in posts:
+        if publicacion["id"] == id_publicacion:
+            return publicacion
+    raise HTTPException(status_code=404, detail="Elemento no encontrado")
 
+# Eliminar una publicación por su ID
+@app.delete('/posts/{id_publicacion}')
+def eliminar_publicacion(id_publicacion: str):
+    for indice, publicacion in enumerate(posts):
+        if publicacion["id"] == id_publicacion:
+            posts.pop(indice)
+            return {"mensaje": "La publicación se ha eliminado satisfactoriamente"}
+    raise HTTPException(status_code=404, detail="Elemento no encontrado")
 
-@app.delete('/posts/{post_id}')
-def delete_post(post_id: str):
-    for index, post in enumerate(posts):
-        if post["id"] == post_id:
-            posts.pop(index)
-            return {"message": "La publicacion se ha eliminado satifactoriamente"}
-    raise HTTPException(status_code=404, detail="Item not found")
-
-@app.put('/posts/{post_id}')
-def update_post(post_id: str, updatedPost: Post):
-    for index, post in enumerate(posts):
-        if post["id"] == post_id:
-            posts[index]["title"]= updatedPost.dict()["title"]
-            posts[index]["content"]= updatedPost.dict()["content"]
-            posts[index]["author"]= updatedPost.dict()["author"]
-            return {"message": "Post has been updated succesfully"}
-    raise HTTPException(status_code=404, detail="Item not found")
+# Actualizar una publicación por su ID
+@app.put('/posts/{id_publicacion}')
+def actualizar_publicacion(id_publicacion: str, publicacion_actualizada: Post):
+    for indice, publicacion in enumerate(posts):
+        if publicacion["id"] == id_publicacion:
+            posts[indice]["title"] = publicacion_actualizada.dict()["title"]
+            posts[indice]["content"] = publicacion_actualizada.dict()["content"]
+            posts[indice]["author"] = publicacion_actualizada.dict()["author"]
+            return {"mensaje": "La publicación se ha actualizado exitosamente"}
+    raise HTTPException(status_code=404, detail="Elemento no encontrado")
